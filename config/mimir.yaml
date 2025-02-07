@@ -1,0 +1,32 @@
+multitenancy_enabled: false
+
+server:
+  http_listen_port: 9009
+  http_listen_address: "0.0.0.0"
+  grpc_listen_address: "0.0.0.0"
+
+blocks_storage:
+  backend: filesystem
+  filesystem:
+    dir: /tmp/mimir
+  bucket_store:
+    sync_dir: /tmp/mimir-sync
+
+compactor:
+  data_dir: /tmp/mimir-compactor
+  sharding_ring:
+    kvstore:
+      store: inmemory
+
+distributor:
+  ring:
+    instance_addr: mimir
+    kvstore:
+      store: inmemory
+
+ingester:
+  ring:
+    instance_addr: mimir
+    kvstore:
+      store: inmemory
+    replication_factor: 1
