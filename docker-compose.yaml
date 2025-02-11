@@ -87,7 +87,11 @@ services:
     image: grafana/promtail:3.1.2
     volumes:
       - ./config/promtail.yaml:/etc/promtail/config.yaml
+      # system logs path
       - /var/log:/var/log
+      # privileged: mount docker socket to read container logs.
+      # this can be removed if container logs aren't needed, but also remove the relevant scrape config from promtail.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/config.yaml
 
 volumes:
