@@ -21,6 +21,7 @@ services:
       - loki
       - mimir
       - tempo
+      - pyroscope
       - alloy
 
   # alloy is grafana's take on otel collector. it routes telemetry signals to the correct backend, with pipeline support
@@ -32,11 +33,13 @@ services:
       - "run"
       - "--server.http.listen-addr=0.0.0.0:12345"
       - "--storage.path=/var/lib/alloy/data"
+      - "--stability.level=public-preview" # allow pyroscope, not yet GA
       - "/etc/alloy/local.alloy"
     ports:
-      - "12345:12345"
-      - "4317:4317"
-      - "4318:4318"
+      - "12345:12345"   # internal debug
+      - "4317:4317"     # otlp grpc
+      - "4318:4318"     # otlp http
+      - "4040:4040"     # pyroscope http
     volumes:
       - ./config/alloy.alloy:/etc/alloy/local.alloy
 
@@ -79,6 +82,11 @@ services:
     volumes:
       - ./config/tempo.yaml:/etc/tempo/local-config.yaml
       - tempo-data:/tmp/tempo
+
+  # pyroscope for continuous profiling
+  pyroscope:
+    image: grafana/pyroscope:latest
+    # ports: [ "4040:4040" ]
 
   # promtail reads system logs and pushes them to loki.
   # to effectively monitor localhost docker containers' stdout logs, the docker daemon must use file logging.

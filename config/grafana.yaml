@@ -35,3 +35,10 @@ datasources:
         datasourceUid: 'loki'
     version: 1
     editable: true
+
+  - name: Pyroscope
+    type: grafana-pyroscope-datasource
+    access: proxy
+    url: http://pyroscope:4040
+    version: 1
+    editable: true
