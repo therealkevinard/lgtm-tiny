@@ -57,7 +57,7 @@ services:
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
 
-  # mimmir is mimir. it holds metrics
+  # mimir is mimir. it holds metrics
   # exposes admin/monitoring on http://localhost:9009/
   mimir:
     image: grafana/mimir:2.14.3
