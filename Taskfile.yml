@@ -1,0 +1,22 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  up:
+    desc: start the thing
+    cmd: docker compose up -d
+
+  down:
+    desc: stop the thing
+    cmd: docker compose down
+
+  reset:
+    desc: start the thing from a blank slate. volumes will be destroyed
+    cmds:
+      - task: purge
+      - task: up
+
+  purge:
+    desc: stop the thing, destroying volumes
+    cmd: docker compose down --volumes
