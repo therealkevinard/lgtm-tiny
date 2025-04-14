@@ -50,6 +50,19 @@ otelcol.exporter.loki "default" {
     forward_to = [loki.write.default.receiver]
 }
 
+// -------------------------------------------------------| service discovery
+discovery.docker "containers" {
+    host = "unix:///var/run/docker.sock"
+    refresh_interval = "15s"
+}
+
+// -------------------------------------------------------| prometheus scraping
+prometheus.scrape "local_svc__api_gateway" {
+    metrics_path = "/metrics"
+    targets = discovery.docker.containers.targets
+    forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
 // -------------------------------------------------------| sinks
 // metrics
 prometheus.remote_write "mimir" {

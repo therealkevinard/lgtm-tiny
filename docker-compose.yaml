@@ -43,6 +43,8 @@ services:
       - "4040:4040"     # pyroscope http
     volumes:
       - ./config/alloy.alloy:/etc/alloy/local.alloy
+      # privileged: mount docker socket to support discovery.docker in ally 
+      - /var/run/docker.sock:/var/run/docker.sock
 
   # loki is loki. it holds logs
   loki:
