@@ -7,7 +7,16 @@ logging {
   format = "logfmt"
 }
 
+// -------------------------------------------------------| service discovery
+// discover containers managed by the local docker daemon.
+// provides targets to other pipeline components.
+discovery.docker "containers" {
+    host = "unix:///var/run/docker.sock"
+    refresh_interval = "15s"
+}
+
 // -------------------------------------------------------| otlp ingest
+// primary receiver for otlp/otel-native telemetry
 otelcol.receiver.otlp "default" {
     grpc {
         endpoint = "0.0.0.0:4317"
@@ -24,6 +33,7 @@ otelcol.receiver.otlp "default" {
 }
 
 // -------------------------------------------------------| pyroscope ingest
+// receiver for pyroscope runtime perf sampling
 pyroscope.receive_http "default" {
    http {
        listen_address = "0.0.0.0"
@@ -32,6 +42,26 @@ pyroscope.receive_http "default" {
    forward_to = [pyroscope.write.backend.receiver]
 }
 
+// -------------------------------------------------------| prometheus scrapers
+// auto-discovered endpoints from discovery.docker
+prometheus.scrape "docker_metrics" {
+    metrics_path = "/metrics"
+    targets = discovery.docker.containers.targets
+    forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// manual entry
+prometheus.scrape "local_svc__api_gateway" {
+    metrics_path = "/metrics"
+    targets = [
+        {
+            __address__ = "host.docker.internal:9090",
+            job = "local_api_gateway",
+        },
+    ]
+
+    forward_to = [prometheus.remote_write.mimir.receiver]
+}
 
 // -------------------------------------------------------| batch processor
 otelcol.processor.batch "default" {

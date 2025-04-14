@@ -59,3 +59,29 @@ that's by design: we capture twice because you're logging twice.
 in this case, you probably want to prefer the otel logs. otel/tempo will add precise labels to the ingested jobs
 depending on your otel resource configs.   
 also worth noting that the docker.sock logs can be directly excluded with `{job!="docker_sock"}`
+
+### prometheus metrics 
+
+this was created with a preference for otel-native telemetry.   
+it has support for prometheus-native metrics scraping, but this is manual:   
+in `config/alloy.alloy`, find/add prometheus.scrape block(s) for the service(s) you want to scrape metrics from.
+
+using this scrape as an example: 
+```text
+prometheus.scrape "local_svc__api_gateway" {                        // [1] unique name for the config  
+    metrics_path = "/metrics"                                       // [2] path on the service to scrape metrics from 
+    targets = [
+        {
+            __address__ = "host.docker.internal:9090",              // [3] http address for service. note host.docker.internal for docker on mac 
+            job = "local_api_gateway",                              // [4] job name, attached to scraped metrics. 
+        },
+    ]
+
+    forward_to = [prometheus.remote_write.mimir.receiver]           // [5] scraped metrics are forwarded to the mimir receiver defined in alloy
+}
+```
+
+with that: 
+- (2,3) alloy will scrape metrics from a service running at host.docker.internal:9090/metrics (localhost:9090/metrics outside of the docker context)  
+- (3,4) found metrics will be labeled with {instance="host.docker.internal:9090", job="local_api_gateway"} 
+- (5) found metrics will be forwarded to the mimir instance deployed from this compose stack
